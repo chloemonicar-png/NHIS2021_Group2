@@ -39,3 +39,16 @@ library(ggplot2)
 
 ## Load the corrplot library
 library(corrplot)
+
+## Import NHIS Data 
+NHIS_Data <- read_csv("~/Desktop/𝒔𝒄𝒉𝒐𝒐𝒍/pubh 422/data/NHIS _Data_2021.csv")
+
+## Display structure of NHIS Data 
+str(NHIS_Data)
+
+## Display summary of NHIS Data 
+summary(NHIS_Data)
+
+## Display the first 6 rows of the NHIS Data  
+head(NHIS_Data)
+
