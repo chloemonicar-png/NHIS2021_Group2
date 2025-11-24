@@ -12,10 +12,12 @@ nhis$EDUCP_A <- as.factor(nhis$EDUCP_A)
 # Define custom labels for the SEX_A variable (in accordance with codebook)
 sex_labels <- c("1" = "Male", "2" = "Female")
 
-# Create enhanced scatterplot of Height vs Weight faceted by Sex & Education Level
+
+# Calculate the correlation between Height & Weight
 correlation <- cor(nhis$HEIGHTTC_A, nhis$WEIGHTLBTC_A, use = "complete.obs")
 cat("Correlation between Height and Weight:", correlation, "\n")
 
+# Create enhanced scatterplot of Height vs Weight faceted by Sex & Education Level
 ggplot(data = nhis, aes(x = WEIGHTLBTC_A, y = HEIGHTTC_A, color = SEX_A)) +
   geom_point(alpha = 0.6) + # Use alpha for better visibility 
   facet_wrap(~ EDUCP_A) + # Facet by Education Level
