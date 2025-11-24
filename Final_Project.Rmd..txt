@@ -1,0 +1,311 @@
+---
+title: "Final_Report"
+author: "Chloe Carigo, Kimberly Carmona, & Giselle Escalla"
+date: "2025-11-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(include = TRUE)
+```
+
+# Project Setup & Data Import
+
+## Environment Setup
+
+In order to complete the required data analyses, the installation of certain R packages is necessary.
+
+```{r install, eval=FALSE, include=FALSE}
+### Install required R Packages
+
+
+## Install tidyverse package
+install.packages("tidyverse")
+
+## Install ggplot2 package
+install.packages("ggplot2")
+
+## Install corrplot package
+install.packages("corrplot") 
+
+## Install psych package
+install.packages("psych")
+
+## Install tidyr package
+install.packages("tidyr")
+```
+
+The above lines of code prompt the installation of the required R packages: *tidyverse*, *ggplot2*, *corrplot*, *psych*, and tidyr.
+
+Following the installation of the required packages, the libraries of such packages must be loaded in order to be utilized.
+
+```{r load, echo=TRUE}
+## Load required packages
+
+### Load all required packages
+
+## Load the tidyverse library
+library (tidyverse)
+
+## Load the ggplot2 library
+library(ggplot2)
+
+## Load the corrplot library
+library(corrplot)
+
+## Load the psych library
+library(psych)
+
+## Load the tidyr library
+library(tidyr)
+
+```
+
+The above lines of code load the libraries of the installed packages.
+
+## Data Import
+
+The data set from the 2021 NHIS Data must be imported in order to conduct data analyses. This line of code imports the NHIS data into the project to be read and analyzed.
+
+
+```{r initial exploration, echo=TRUE}
+
+## Import NHIS Data 
+NHIS_Data <- read_csv("~/Desktop/𝒔𝒄𝒉𝒐𝒐𝒍/pubh 422/data/NHIS _Data_2021.csv")
+
+```
+
+
+## Initial Exploration
+
+To understand the structure of the data, and initial exploration can be performed.
+
+```{r initial exploration 1, echo=TRUE}
+
+## Display structure of NHIS Data 
+str(NHIS_Data)
+
+```
+
+This line of code displays the structure of the NHIS data set, including the variables, length, and width of the data.
+
+```{r initial exploration 2, echo=TRUE}
+
+## Display summary of NHIS Data 
+summary(NHIS_Data)
+
+```
+
+This line of code conveys a summary of the NHIS data, including the minimum, 1st quartile, median, mean, 3rd quartile, and maximum values for each variable in the data set.
+
+```{r initial exploration 3, echo=TRUE}
+
+## Display the first 6 rows of the NHIS Data  
+head(NHIS_Data)
+
+```
+
+This line of code displays the first six rows of the NHIS data set.
+
+# Data Cleaning & Management
+
+## Data Cleaning
+
+This line of code loads the required NHIS dataset.
+```{r loaddata, echo=TRUE}
+# Load the NHIS dataset
+nhis_data <- read.csv("data/nhis_clean.csv")
+```
+
+
+```{r select, echo=TRUE}
+vars_needed <- c("AGEP_A", "WEIGHTLBTC_A", "HEIGHTTC_A", "SEX_A", "HISPALLP_A", "EDUCP_A", "PHSTAT_A", "LSATIS4R_A")
+nhis <- nhis_data %>%
+  select(all_of(vars_needed)) # Keep only required columns
+
+```
+
+Selecting essential variables streamlines the analysis and focuses the study on key demographic and health indicators, such as age, sex, educational attainment, general health, and life satisfaction, all of which are important for understanding population health and disparities.
+
+```{r listmissing, echo=TRUE}
+# List all missing value codes based on the codebook
+missing_codes <- c(7, 9, 97, 98, 99, 996:999)
+
+```
+
+NHIS uses numeric placeholders for non-response. Treating these codes as valid data would bias results, especially when analyzing health status, education, or satisfaction with life.
+
+```{r replacemissing, echo=TRUE}
+# Replace missing value codes with NA for all variables
+nhis_clean <- nhis %>%
+  mutate(across(
+    everything(),
+    ~ ifelse(.%in% missing_codes, NA, .)
+  ))
+
+```
+Replacing miscellaneous missing codes with standard NA makes the dataset compatible with statistical functions in R and ensures you don’t accidentally treat “97” or “999” as actual age, weight, or education levels.
+
+```{r loadtdyr, include=FALSE}
+# Load tidyr for drop_na()
+library(tidyr)
+```
+Data-cleaning packages like tidyr help ensure the dataset is tidy.
+
+```{r removerows, echo=TRUE}
+# Remove any rows that contain any NA values
+nhis_clean <- nhis_clean %>%
+  drop_na()
+
+```
+This process is called listwise deletion. It ensures that every observation used in analysis has complete information across all variables.
+
+This line of code prints the first few rows of the cleaned dataset, reflecting the changes made to clean the NHIS data.
+```{r headclean, echo=TRUE}
+# Show first few rows of the cleaned dataset
+head(nhis_clean)
+
+```
+
+## Recoding Variables
+
+This step prepares the dataset for a meaningful social determinant of health analysis. Education is one of the strongest predictors of health outcomes, so re-coding it properly is critical.
+```{r loaddata2, echo=TRUE}
+# Take the current cleaned dataset and create a new variable
+nhis_clean <- nhis %>%
+  mutate(across(
+    everything(),
+    ~ ifelse(.%in% missing_codes, NA, .)
+  ))
+```
+Recoding allows you to interpret education level clearly, which is important because education strongly influences income, employment, health literacy, and long-term health.
+
+```{r recodeedu, echo=TRUE}
+  ## Recode EDUCP_A into 4 meaningful education categories
+    EDUCP_recoded = case_when(
+      nhis_clean$EDUCP_A %in% 0:4 ~ 1,  # Less than High School
+       nhis_clean$EDUCP_A == 4 ~ 2,      # High School Graduate
+       nhis_clean$EDUCP_A %in% 5:7 ~ 3,  # Some College
+       nhis_clean$EDUCP_A %in% 8:10 ~ 4, # College Graduate or better
+      TRUE ~ NA_real_
+    )
+
+```
+
+Clear labeling is essential for public health communication. For example, in tables or visualizations, “College Graduate” is much easier to interpret than “4.” This also allows you to compare how education relates to general health (PHSTAT_A), life satisfaction, smoking behavior, and other outcomes linked to disparities.
+
+```{r convertrecode, echo=TRUE}
+ # Convert recoded variable into a factor with labels
+    EDUCP_recoded = factor(
+      EDUCP_recoded,
+      levels = c(1, 2, 3, 4),
+      labels = c(
+        "Less than High School",
+        "High School Graduate",
+        "Some College Education",
+        "College Graduate or better"
+      )
+    )
+  
+
+
+```
+
+This line of code saves the cleaned dataset into the proper folder and ensures organization.
+```{r saveclean, echo=TRUE}
+# Save the cleaned dataset to the data/ folder 
+write.csv(nhis_clean, "data/nhis_clean.csv", row.names = FALSE)
+
+```
+
+This line of code prints the first six rows of the final cleaned dataset, reflecting the above changes made.
+```{r headnhis2, echo=TRUE}
+# View the first few rows of the final cleaned dataset
+head(nhis_clean)
+
+```
+
+
+
+# Univariate & Bivariate Analysis & Visualization
+
+You can also embed plots, for example:
+
+```{r pressure2, echo=FALSE}
+plot(pressure)
+```
+
+**Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.**\
+
+# Multivariate Analysis & Visualization
+
+## 
+
+This line of code loads the cleaned NHIS data set for multivariate analysis.
+
+```{r load clean data mv, echo=FALSE}
+# Load cleaned dataset
+nhis <- read_csv("data/nhis_clean.csv")
+```
+
+These lines of code ensure the sex (*SEX_A)* and education (*EDUCP_A)* variables are factors in order to be transformed other forms, in this case, a scatter plot.
+
+```{r factors, echo=TRUE}
+# Ensure categorical variables are factors for plotting
+nhis$SEX_A <- as.factor(nhis$SEX_A)
+nhis$EDUCP_A <- as.factor(nhis$EDUCP_A)
+```
+
+To ensure greater readability and clarity, this line of code defines the labels for sex to be reflected in the following scatter plot in accordance to the NHIS data codebook.
+
+```{r define custom labels, echo=TRUE}
+
+# Define custom labels for the SEX_A variable (in accordance with codebook)
+sex_labels <- c("1" = "Male", "2" = "Female")
+
+```
+
+These lines of code calculates and prints the output correlation calculations between height (*HEIGHTTC_A*) and weight (*WEIGHTLBTC_A*).
+
+```{r correlation heightweight, echo=FALSE}
+# Calculate the correlation between Height & Weight
+correlation <- cor(nhis$HEIGHTTC_A, nhis$WEIGHTLBTC_A, use = "complete.obs")
+cat("Correlation between Height and Weight:", correlation, "\n")
+
+```
+
+These lines of code create a scatter plot of height and weight by sex and education levels.
+
+```{r enhanced scatterplot, echo=TRUE}
+
+# Create enhanced scatterplot of Height vs Weight faceted by Sex & Education Level
+ggplot(data = nhis, aes(x = WEIGHTLBTC_A, y = HEIGHTTC_A, color = SEX_A)) +
+  geom_point(alpha = 0.6) + # Use alpha for better visibility 
+  facet_wrap(~ EDUCP_A) + # Facet by Education Level
+  labs(
+    title = "Height vs. Weight by Sex and Education Level",
+    x = "Weight (lbs)",
+    y = "Height (cm)",
+    color = "Sex"
+  ) +
+scale_color_manual(labels = sex_labels, values = c("blue", "red")) + # Apply custom labels & colors
+  theme_minimal() # Apply a clean theme 
+```
+
+As illustrated by the scatter plots, in each group, a majority of males had greater height and weight values than females. Such suggests that males in this sample, and possibly the greater population of male American adults, could similarly have greater height and weight in comparison to female American adults.
+
+```{r scatterplot matrix, echo=FALSE}
+# Create a scatter plot matrix of Age, Weight, and Height
+pairs.panels(nhis[, c("AGEP_A", "WEIGHTLBTC_A", "HEIGHTTC_A")],
+             method = "pearson", # Add correlation method
+             hist.col = "lightgreen", # Add color to histograms
+             ellipses = TRUE, # Add correlation ellipses
+             lm = TRUE) # Add linear regression lines
+
+```
+
+These lines of code create a scatter plot marix, comparing the correlations between age (*AGEP_A*), weight (*WEIGHTLBTC_A*), and height (*HEIGHTTC_A*). In accordance with previous analyses, height and weight displayed a significant, positive correlation. However, correlations between weight and age, as well as height and age, were little to nonexistent.
+
+```{r example chunk, echo=FALSE}
+plot(pressure)
+```
