@@ -67,14 +67,14 @@ The above lines of code load the libraries of the installed packages.
 
 The data set from the 2021 NHIS Data must be imported in order to conduct data analyses. This line of code imports the NHIS data into the project to be read and analyzed.
 
-
 ```{r initial exploration, echo=TRUE}
-
+library(readr)
 ## Import NHIS Data 
-NHIS_Data <- read_csv("~/NHIS2021_Group2/data/NHIS_Data_2021.csv")
+
+nhis_data <- read_csv("data/NHIS_Data_2021.csv")
+
 
 ```
-
 
 ## Initial Exploration
 
@@ -112,11 +112,11 @@ This line of code displays the first six rows of the NHIS data set.
 ## Data Cleaning
 
 This line of code loads the required NHIS dataset.
+
 ```{r loaddata, echo=TRUE}
 # Load the NHIS dataset
 nhis_data <- read.csv("data/nhis_clean.csv")
 ```
-
 
 ```{r select, echo=TRUE}
 vars_needed <- c("AGEP_A", "WEIGHTLBTC_A", "HEIGHTTC_A", "SEX_A", "HISPALLP_A", "EDUCP_A", "PHSTAT_A", "LSATIS4R_A")
@@ -144,12 +144,14 @@ nhis_clean <- nhis %>%
   ))
 
 ```
+
 Replacing miscellaneous missing codes with standard NA makes the dataset compatible with statistical functions in R and ensures you don’t accidentally treat “97” or “999” as actual age, weight, or education levels.
 
 ```{r loadtdyr, include=FALSE}
 # Load tidyr for drop_na()
 library(tidyr)
 ```
+
 Data-cleaning packages like tidyr help ensure the dataset is tidy.
 
 ```{r removerows, echo=TRUE}
@@ -158,9 +160,11 @@ nhis_clean <- nhis_clean %>%
   drop_na()
 
 ```
+
 This process is called listwise deletion. It ensures that every observation used in analysis has complete information across all variables.
 
 This line of code prints the first few rows of the cleaned dataset, reflecting the changes made to clean the NHIS data.
+
 ```{r headclean, echo=TRUE}
 # Show first few rows of the cleaned dataset
 head(nhis_clean)
@@ -170,6 +174,7 @@ head(nhis_clean)
 ## Recoding Variables
 
 This step prepares the dataset for a meaningful social determinant of health analysis. Education is one of the strongest predictors of health outcomes, so re-coding it properly is critical.
+
 ```{r loaddata2, echo=TRUE}
 # Take the current cleaned dataset and create a new variable
 nhis_clean <- nhis %>%
@@ -178,6 +183,7 @@ nhis_clean <- nhis %>%
     ~ ifelse(.%in% missing_codes, NA, .)
   ))
 ```
+
 Recoding allows you to interpret education level clearly, which is important because education strongly influences income, employment, health literacy, and long-term health.
 
 ```{r recodeedu, echo=TRUE}
@@ -212,6 +218,7 @@ Clear labeling is essential for public health communication. For example, in tab
 ```
 
 This line of code saves the cleaned dataset into the proper folder and ensures organization.
+
 ```{r saveclean, echo=TRUE}
 # Save the cleaned dataset to the data/ folder 
 write.csv(nhis_clean, "data/nhis_clean.csv", row.names = FALSE)
@@ -219,13 +226,12 @@ write.csv(nhis_clean, "data/nhis_clean.csv", row.names = FALSE)
 ```
 
 This line of code prints the first six rows of the final cleaned dataset, reflecting the above changes made.
+
 ```{r headnhis2, echo=TRUE}
 # View the first few rows of the final cleaned dataset
 head(nhis_clean)
 
 ```
-
-
 
 # Univariate & Bivariate Analysis & Visualization
 
@@ -237,9 +243,322 @@ plot(pressure)
 
 **Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.**\
 
-# Multivariate Analysis & Visualization
+```{r}
+# 03_univariate_analysis.R
+library(tidyverse)
 
-## 
+# Load clean dataset
+nhis <- read_csv("data/nhis_clean.csv")
+
+# LIST OF QUANTITATIVE VARIABLES
+quant_vars <- c("AGEP_A", "WEIGHTLBTC_A", "HEIGHTTC_A")
+
+# 1. AGEP_A summary stats 
+summary(nhis$AGEP_A)
+cat("Mean:", mean(nhis$AGEP_A, na.rm=TRUE), "\n")
+cat("Median:", median(nhis$AGEP_A, na.rm=TRUE), "\n")
+cat("Standard deviation:", sd(nhis$AGEP_A, na.rm=TRUE), "\n")
+
+# Base R histogram
+hist(nhis$AGEP_A,
+     main="Histogram of AGEP_A",
+     xlab="Age",
+     col="lightblue",
+     border="black")
+
+#ggplot histogram age
+ggplot(nhis, aes(x=AGEP_A)) +
+  geom_histogram(fill="skyblue", color="black", bins=30) +
+  labs(title="GGPlot Histogram of AGEP_A", x="Age", y="Frequency") +
+  theme_minimal()
+```
+
+The histogram shows the distribution of ages ranging from mid-teens to mid 80s. The frequency is fairly even, but there is a significant concentration of individuals from the age of 55-70. Those younger than 20 and between the age of mid 70s are less common. The distribution overall shows a broad spread of ages. The ggplot bars appear uniform with a few ranges, particularly, around mid 50s and 60s, showing higher counts. The distribution lacks a central peak.
+
+```{r}
+# Base R boxplot
+boxplot(nhis$AGEP_A,
+        main="Boxplot of AGEP_A",
+        ylab="Age",
+        col="lightgreen")
+# ggplot2 boxplot
+ggplot(nhis, aes(y=AGEP_A)) +
+  geom_boxplot(fill="lightgreen") +
+  labs(title="GGPlot Boxplot of AGEP_A", y="Age") +
+  theme_minimal()
+
+```
+
+The boxplot visualized median, quartiles, and outliers within the data.
+
+## WeightLBTC_A
+
+```{r}
+cat("\n=========================\nWEIGHTLBTC_A\n=========================\n")
+summary(nhis$WEIGHTLBTC_A)
+cat("Mean:", mean(nhis$WEIGHTLBTC_A, na.rm=TRUE), "\n")
+cat("Median:", median(nhis$WEIGHTLBTC_A, na.rm=TRUE), "\n")
+cat("Standard deviation:", sd(nhis$WEIGHTLBTC_A, na.rm=TRUE), "\n")
+
+# Base R histogram
+hist(nhis$WEIGHTLBTC_A,
+     main="Histogram of WEIGHTLBTC_A",
+     xlab="Weight (lbs)",
+     col="lightblue",
+     border="black")
+# ggplot2 histogram
+ggplot(nhis, aes(x=WEIGHTLBTC_A)) +
+  geom_histogram(fill="skyblue", color="black", bins=30) +
+  labs(title="GGPlot Histogram of WEIGHTLBTC_A", x="Weight (lbs)", y="Frequency") +
+  theme_minimal()
+
+```
+
+The histogram shows the distribution of weight, helping us identify common weight ranges and skewness. The weight data is positively skewed with more people weight between 150-200 pounds and less people weighing over 200 lbs.
+
+```{r}
+#Base R boxplot
+boxplot(nhis$WEIGHTLBTC_A,
+        main="Boxplot of WEIGHTLBTC_A",
+        ylab="Weight (lbs)",
+        col="lightgreen")
+#ggplot2 boxplot
+ggplot(nhis, aes(y=WEIGHTLBTC_A)) +
+  geom_boxplot(fill="lightgreen") +
+  labs(title="GGPlot Boxplot of WEIGHTLBTC_A", y="Weight (lbs)") +
+  theme_minimal()
+```
+
+The ggplot boxplot confirms the distribution and highlights potential outliers in weight.
+
+## HEIGHTTC_A
+
+```{r}
+cat("\n=========================\nHEIGHTTC_A\n=========================\n")
+summary(nhis$HEIGHTTC_A)
+cat("Mean:", mean(nhis$HEIGHTTC_A, na.rm=TRUE), "\n")
+cat("Median:", median(nhis$HEIGHTTC_A, na.rm=TRUE), "\n")
+cat("Standard deviation:", sd(nhis$HEIGHTTC_A, na.rm=TRUE), "\n")
+
+# Base R histogram
+hist(nhis$HEIGHTTC_A,
+     main="Histogram of HEIGHTTC_A",
+     xlab="Height (inches)",
+     col="lightblue",
+     border="black")
+
+# ggplot2 histogram
+ggplot(nhis, aes(x=HEIGHTTC_A)) +
+  geom_histogram(fill="skyblue", color="black", bins=30) +
+  labs(title="GGPlot Histogram of HEIGHTTC_A", x="Height (inches)", y="Frequency") +
+  theme_minimal()
+```
+
+The histogram shows the height distribution of participants, with a median off 66 inches and mean of 66.7 inches.
+
+```{r}
+# Base R boxplot
+boxplot(nhis$HEIGHTTC_A,
+        main="Boxplot of HEIGHTTC_A",
+        ylab="Height (inches)",
+        col="lightgreen")
+
+# ggplot2 boxplot
+ggplot(nhis, aes(y=HEIGHTTC_A)) +
+  geom_boxplot(fill="lightgreen") +
+  labs(title="GGPlot Boxplot of HEIGHTTC_A", y="Height (inches)") +
+  theme_minimal()
+```
+
+The boxplot for height visualizes the minimum height which is. 59 inches, the first quartile being 64 and the 3rd quartile being 70.
+
+## Qualitative Variables
+In this section we are exploring sex, Hispanic origin, education, perceived general health status, and life satisfaction.
+### AGEP_A
+```{r}
+# 1. SEX_A
+cat("\n=========================\nSEX_A\n=========================\n")
+
+# Frequency table
+table(nhis$SEX_A)
+
+# Base R bar plot
+barplot(table(nhis$SEX_A),
+        main="Barplot of SEX_A",
+        ylab="Count",
+        col="lightblue")
+
+# ggplot2 bar plot
+ggplot(nhis, aes(x=SEX_A)) +
+  geom_bar(fill="skyblue") +
+  labs(title="GGPlot Barplot of SEX_A", x="SEX_A", y="Count") +
+  theme_minimal()
+
+```
+In this data set 9,788 participants are male and 11,081 female.The barplot shows a higher bar for the second sex.
+
+```{r}
+# 2. HISPALLP_A
+
+cat("\n=========================\nHISPALLP_A\n=========================\n")
+
+# Frequency table
+table(nhis$HISPALLP_A)
+
+# Base R bar plot
+barplot(table(nhis$HISPALLP_A),
+        main="Barplot of HISPALLP_A",
+        ylab="Count",
+        col="lightblue")
+
+# ggplot2 bar plot
+ggplot(nhis, aes(x=HISPALLP_A)) +
+  geom_bar(fill="skyblue") +
+  labs(title="GGPlot Barplot of HISPALLP_A", x="HISPALLP_A", y="Count") +
+  theme_minimal()
+
+```
+The data for Hispanic origin shows majority of the Hispanic or Latino origin respondents to fall under Puerto Rican, followed by Mexican/American respondents.
+
+```{r}
+# 3. EDUCP_A
+cat("\n=========================\nEDUCP_A\n=========================\n")
+
+# Frequency table
+table(nhis$EDUCP_A)
+
+# Base R bar plot
+barplot(table(nhis$EDUCP_A),
+        main="Barplot of EDUCP_A",
+        ylab="Count",
+        col="lightblue")
+
+# ggplot2 bar plot
+ggplot(nhis, aes(x=EDUCP_A)) +
+  geom_bar(fill="skyblue") +
+  labs(title="GGPlot Barplot of EDUCP_A", x="EDUCP_A", y="Count") +
+  theme_minimal()
+```
+The education level data shows that a large portion of the sample has a form of higher education. Lower education levels are less frequent. Overall, data shows that respondents have at least some college education although there is missing responses or refused responses.
+```{r}
+# 4. PHSTAT_A
+
+cat("\n=========================\nPHSTAT_A\n=========================\n")
+
+# Frequency table
+table(nhis$PHSTAT_A)
+
+# Base R bar plot
+barplot(table(nhis$PHSTAT_A),
+        main="Barplot of PHSTAT_A",
+        ylab="Count",
+        col="lightblue")
+
+# ggplot2 bar plot
+ggplot(nhis, aes(x=PHSTAT_A)) +
+  geom_bar(fill="skyblue") +
+  labs(title="GGPlot Barplot of PHSTAT_A", x="PHSTAT_A", y="Count") +
+  theme_minimal()
+
+
+```
+Respondents report relatively good health, with 7150 respondents reporting that their health is very good and 6027 reporting good health. Fewer respondents as shown by the barplot experienced fair or poor health.
+```{r}
+# 5. LSATIS4R_A
+cat("\n=========================\nLSATIS4R_A\n=========================\n")
+
+# Frequency table
+table(nhis$LSATIS4R_A)
+
+# Base R bar plot
+barplot(table(nhis$LSATIS4R_A),
+        main="Barplot of LSATIS4R_A",
+        ylab="Count",
+        col="lightblue")
+
+# ggplot2 bar plot
+ggplot(nhis, aes(x=LSATIS4R_A)) +
+  geom_bar(fill="skyblue") +
+  labs(title="GGPlot Barplot of LSATIS4R_A", x="LSATIS4R_A", y="Count") +
+  theme_minimal()
+```
+
+The variable LSATIS4R_A measures self-reported life satisfaction. The majority of respondents report positive satisfaction followed by those indicating very satisfied. Few respondents report dissatisfied or very disatisfied.
+
+## Bivariate Analysis 
+This section focuses on exploring relationships between key demographic and variables that may help identify. patterns.  
+```{r}
+# 1. Quantitative vs Qualitative
+
+# AGEP_A by SEX_A - Base R boxplot (works as is)
+boxplot(AGEP_A ~ SEX_A, data = nhis,
+        main = "AGEP_A by SEX_A",
+        xlab = "SEX_A",
+        ylab = "Age",
+        col = "lightblue")
+
+# AGEP_A by SEX_A - ggplot2 boxplot (fixed)
+ggplot(nhis, aes(x = factor(SEX_A), y = AGEP_A)) +
+  geom_boxplot(fill = "lightgreen") +
+  labs(title = "GGPlot: AGEP_A by SEX_A", x = "SEX_A", y = "Age") +
+  theme_minimal()
+
+# AGEP_A by EDUCP_A - Base R boxplot (works as is)
+boxplot(AGEP_A ~ EDUCP_A, data = nhis,
+        main = "AGEP_A by EDUCP_A",
+        xlab = "EDUCP_A",
+        ylab = "Age",
+        col = "lightblue")
+
+# AGEP_A by EDUCP_A - ggplot2 boxplot (fixed)
+ggplot(nhis, aes(x = factor(EDUCP_A), y = AGEP_A)) +
+  geom_boxplot(fill = "lightgreen") +
+  labs(title = "GGPlot: AGEP_A by EDUCP_A", x = "EDUCP_A", y = "Age") +
+  theme_minimal()
+```
+The boxplot containing age and sex shows that age distributions are similar in both categories, with medians being almost identical and the quartiles being similar as well. Overall, the plot suggests that there is no meaningful difference in age distribution between genders.
+```{r}
+# 2. Qualitative vs Qualitative
+# PHSTAT_A vs LSATIS4R_A - ggplot2 clustered bar chart (fixed)
+ggplot(nhis, aes(x = factor(LSATIS4R_A), fill = factor(PHSTAT_A))) +
+  geom_bar(position = "dodge") +
+  labs(
+    title = "General Health vs Life Satisfaction",
+    x = "Life Satisfaction",
+    y = "Count",
+    fill = "General Health"
+  ) +
+  scale_x_discrete(labels = c("Very Satisfied", "Satisfied", "Dissatisfied", "Very Dissatisfied", "Refused")) +
+  scale_fill_discrete(labels = c("Excellent", "Very Good", "Good", "Fair", "Poor")) +
+  theme_minimal()
+```
+The bar chart shows relationship between individuals' self reported health and levels of life satisfaction. A clear positive association is present between those who report better health also report higher life satisfaction. Those with lower general health also report less life satisfaction. This bar helps establish a clear relationship between life satisfaction and overall health. 
+```{r}
+# 3. Quantitative vs Quantitative
+# HEIGHTTC_A vs WEIGHTLBTC_A - Base R scatter plot
+plot(nhis$HEIGHTTC_A, nhis$WEIGHTLBTC_A,
+     main = "Height vs Weight",
+     xlab = "Height (inches)",
+     ylab = "Weight (lbs)",
+     pch = 19,
+     col = "blue")
+
+# HEIGHTTC_A vs WEIGHTLBTC_A - ggplot2 scatter plot
+ggplot(nhis, aes(x = HEIGHTTC_A, y = WEIGHTLBTC_A)) +
+  geom_point(color = "lightblue") +
+  labs(title = "Height vs Weight", x = "Height (inches)", y = "Weight (lbs)") +
+  theme_minimal()
+```
+```{r}
+# Correlation coefficient
+correlation <- cor(nhis$HEIGHTTC_A, nhis$WEIGHTLBTC_A, use = "complete.obs")
+cat("Correlation between Height and Weight:", correlation, "\n")
+```
+
+The scatterplot helped examine the relationship between height and weight. The plot indicates a positve linear relationship, with taller individual weighing more. The Pearsin correlation confirmed this as r=50, indicating a moderate positive association between the two variables. This correlation helps us understand weight related health outcomes in populations.
+
+
+# Multivariate Analysis & Visualization
 
 This line of code loads the cleaned NHIS data set for multivariate analysis.
 
