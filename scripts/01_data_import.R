@@ -3,15 +3,6 @@
 ## Install tidyverse package
 install.packages("tidyverse")
 
-## Install readr package
-install.packages("readr")
-
-## Install dplyr package
-install.packages("dplyr")
-
-## Install summarytools package
-install.packages("summarytools")
-
 ## Install ggplot2 package
 install.packages("ggplot2")
 
@@ -21,21 +12,16 @@ install.packages("corrplot")
 ## Install psych package
 install.packages("psych")
 
+## Install tidyr package
+install.packages("tidyr")
+
 ## Load required packages
 
-## Load the readr library
-library(readr)
 
 ### Load all required packages
 
 ## Load the tidyverse library
 library (tidyverse)
-
-## Load the dplyr library
-library(dplyr)
-
-## Load the summarytools library
-library(summarytools)
 
 ## Load the ggplot2 library
 library(ggplot2)
@@ -45,6 +31,9 @@ library(corrplot)
 
 ## Load the psych library
 library(psych)
+
+## Load the tidyr library
+library(tidyr)
 
 ## Import NHIS Data 
 NHIS_Data <- read_csv("~/Desktop/𝒔𝒄𝒉𝒐𝒐𝒍/pubh 422/data/NHIS _Data_2021.csv")
