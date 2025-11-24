@@ -18,6 +18,9 @@ install.packages("ggplot2")
 ## Install corrplot package
 install.packages("corrplot") 
 
+## Install psych package
+install.packages("psych")
+
 ## Load required packages
 
 ## Load the readr library
@@ -39,6 +42,9 @@ library(ggplot2)
 
 ## Load the corrplot library
 library(corrplot)
+
+## Load the psych library
+library(psych)
 
 ## Import NHIS Data 
 NHIS_Data <- read_csv("~/Desktop/𝒔𝒄𝒉𝒐𝒐𝒍/pubh 422/data/NHIS _Data_2021.csv")
