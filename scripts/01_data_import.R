@@ -36,7 +36,7 @@ library(psych)
 library(tidyr)
 
 ## Import NHIS Data 
-NHIS_Data <- read_csv("~/Desktop/𝒔𝒄𝒉𝒐𝒐𝒍/pubh 422/data/NHIS _Data_2021.csv")
+NHIS_Data <- read_csv("~/NHIS2021_Group2/data/NHIS_Data_2021.csv")
 
 ## Display structure of NHIS Data 
 str(NHIS_Data)
